@@ -1,0 +1,27 @@
+# ==== Securetxt ====
+
+# Coffre : notes chiffrées et réglages personnels. Ne JAMAIS publier.
+coffre/
+*.ltx
+vault.meta
+settings.json
+
+# Créé en local par creer-raccourci.sh
+.securetxt-lanceur.sh
+
+# Archives
+*.zip
+
+# IntelliJ / PhpStorm : fichiers propres à ton poste
+.idea/workspace.xml
+.idea/shelf/
+.idea/httpRequests/
+.idea/dataSources/
+.idea/dataSources.local.xml
+.idea/queries/
+.idea/usage.statistics.xml
+
+# Système
+.DS_Store
+Thumbs.db
+desktop.ini
