@@ -20,6 +20,8 @@ settings.json
 .idea/dataSources.local.xml
 .idea/queries/
 .idea/usage.statistics.xml
+# IntelliJ / PhpStorm : configuration de l'IDE, propre à ton PC
+.idea/
 
 # Système
 .DS_Store
