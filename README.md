@@ -1,4 +1,4 @@
-# Securetxt — v0.3.8
+# Securetxt — v0.3.9
 
 Notes chiffrées en mode texte, en PHP pur (aucun serveur), pilotable à 100 % au clavier, avec la souris en plus.
 
