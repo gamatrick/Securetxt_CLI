@@ -2,6 +2,11 @@
 
 Les nouveautés de chaque version.
 
+## [0.3.9] — 2026-11-04
+
+- `.gitignore` : la dernière ligne `desktop.ini.idea/` (deux règles collées) est séparée en `desktop.ini` et `.idea/`, donc `desktop.ini` est de nouveau ignoré.
+- `.gitignore` : suppression des règles `.idea/…` en double, puisque tout le dossier `.idea/` est déjà ignoré.
+
 ## [0.3.8] — 2026-10-21
 
 - `creer-raccourci.sh` : raccourci dans la liste des applications et sur le Bureau (GNOME, KDE…), ouverture dans Ghostty s'il est installé, sinon dans le premier terminal trouvé. `--supprimer` le retire.
