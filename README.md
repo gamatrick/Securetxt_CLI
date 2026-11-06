@@ -2,7 +2,35 @@
  
 Carnet de notes chiffrées pour le terminal, en PHP pur.
 Aucun serveur, aucune dépendance externe, et une expérience clavier first (la souris est un bonus).
- 
+
+## Introduction
+
+**Securetxt** est un coffre-fort de notes chiffrées pour le terminal. Il offre un endroit sûr et rapide d'accès pour ranger ce qui ne doit jamais traîner dans un simple fichier `.txt` :
+
+- fichiers `.env` et variables d'environnement ;
+- clés d'API, jetons et identifiants de test ;
+- extraits de code ou de configuration sensibles ;
+- procédures internes et notes techniques confidentielles.
+
+Grâce aux **liens entre notes parentes et enfants**, Securetxt sert aussi de **wiki personnel**. Chaque projet peut être documenté en notes reliées entre elles, et la recherche dans tout le coffre (Ctrl+F) retrouve en quelques touches un détail oublié : une commande, un choix technique, une configuration.
+
+### Pourquoi Securetxt ?
+
+- Tout est chiffré, même les noms. Le contenu des notes comme leurs noms sont chiffrés. Sans le mot de passe, le coffre n'est qu'un ensemble de fichiers illisibles.
+- 100 % local. Pas de serveur, pas de compte, pas de cloud : tes données ne quittent jamais ta machine.
+- Rapide à l'usage. L'application se lance dans le terminal et s'utilise entièrement au clavier : pas besoin de quitter ton environnement de travail.
+- Simple à installer. Pas de dépendance à installer : PHP et l'extension libsodium suffisent.
+- Durable. Le format du coffre ne change pas d'une version à l'autre : tes notes restent lisibles après chaque mise à jour.
+
+### À qui s'adresse-t-il ?
+
+Aux développeurs, administrateurs système et à toute personne qui manipule des informations sensibles au quotidien. Securetxt remplace le fichier `secrets.txt` oublié sur le Bureau, les mots de passe notés dans un bloc-notes, ou la documentation de projet éparpillée dans plusieurs fichiers.
+
+### Développement
+
+Securetxt est développé par **gamatrick**, avec l'aide de **Claude** , en particulier pour la partie sécurité (chiffrement du coffre) et l'import / export des notes et des coffres.
+
+
 ---
 ## Sommaire
  
