@@ -1,88 +1,138 @@
-# Securetxt — v0.3.9
-
-Notes chiffrées en mode texte, en PHP pur (aucun serveur), pilotable à 100 % au clavier, avec la souris en plus.
-
-## Lancer
-
-**Windows** : ouvre `securetxt.bat`, mets le chemin de ton `php.exe` 8.5 sur la ligne `PHP85=`, puis double-clique dessus.
-Pour avoir une icône sur le Bureau : double-clique sur `creer-raccourci.bat` (ou Paramètres > Créer un raccourci).
-Si Windows Terminal est installé, le raccourci l'utilise (meilleur rendu).
-
-**Linux** : `./securetxt.sh` (ou `PHP85=/chemin/vers/php ./securetxt.sh`).
-Pour un raccourci (GNOME, KDE…) : `./creer-raccourci.sh`. Securetxt apparaît alors dans la liste des applications (touche Super, puis « Securetxt ») et s'ouvre dans **Ghostty** s'il est installé, sinon dans le premier terminal trouvé (Console, GNOME Terminal, kitty, foot…). Une icône est aussi posée sur le Bureau s'il existe (sous GNOME, il faut l'extension « Desktop Icons NG » pour voir le Bureau).
-`./creer-raccourci.sh --supprimer` retire le raccourci. Si tu déplaces le dossier de Securetxt, relance le script.
-
-Extensions requises : `sodium`, `mbstring`, et `ffi` sous Windows.
-
-**Reprendre ton coffre d'une version précédente** : copie le dossier `coffre/` de l'ancien dossier dans celui-ci. Le format n'a pas changé.
-
-## Paramètres (Ctrl+P, ou P dans l'arborescence)
-
-Tout s'enregistre immédiatement dans `coffre/settings.json`. Ce fichier n'est pas chiffré, mais il ne contient que des réglages.
-
-- **Thème** : Smile Basic, Nuit, Ambre, Phosphore vert, Papier, plus les thèmes que tu as enregistrés (marqués « perso »).
-- **Couleurs personnalisées** : chaque élément (texte, liens, barres, sélection…) se règle séparément. ←/→ ±1, Maj+←/→ ±10, Entrée pour taper un numéro de 0 à 255, R pour annuler la modification d'un élément.
-- **Enregistrer un thème** : dans l'écran des couleurs, **S** enregistre les couleurs actuelles sous le nom de ton choix. Le thème s'ajoute à la liste des thèmes. Pour le modifier, choisis-le, change les couleurs, puis S avec le même nom. Pour le supprimer, mets-le en surbrillance sur la ligne « Thème » et appuie sur **Suppr**. Changer de thème sans enregistrer perd les modifications en cours (l'appli demande confirmation).
-- **Logo du thème à la connexion** : un thème enregistré peut avoir son propre dessin ASCII sur l'écran du mot de passe (voir plus bas). Mets « Non » pour toujours afficher le logo Securetxt.
-- **Éditeur** : retour à la ligne automatique, numéros de ligne, indentation automatique, largeur des tabulations.
-- **Souris** : activée ou désactivée.
-- **Tous les raccourcis clavier** : Entrée remplace, + ajoute une touche, Suppr efface, Retour arrière rétablit la touche par défaut.
-
-## Raccourcis par défaut de l'éditeur
-
-| Touche                       | Action |
-|------------------------------|--------|
-| Ctrl+← / Ctrl+→              | mot précédent / suivant |
-| Ctrl+↑ / Ctrl+↓              | ligne réelle précédente / suivante (↑ ↓ suivent les lignes affichées quand le texte revient à la ligne) |
-| Maj+flèches, Maj+Début/Fin   | sélectionner |
-| Ctrl+Maj+← / →               | sélectionner mot par mot |
-| Ctrl+Maj+↑ / ↓               | sélectionner ligne entière par ligne entière |
-| Ctrl+A                       | tout sélectionner |
-| Ctrl+C / Ctrl+X / Ctrl+V     | copier / couper / coller (sans sélection : la ligne entière) |
-| Ctrl+Z / Ctrl+Y              | annuler / rétablir |
-| Ctrl+Retour arr. (ou +Maj)   | effacer le mot à gauche |
-| Ctrl+Suppr (ou +Maj)         | effacer le mot à droite |
-| Maj+Entrée                   | sauter une ligne au début de la ligne (le texte descend d'une ligne) |
-| Ctrl+Entrée                  | nouvelle ligne en dessous, sans couper la ligne |
-| Tab / Maj+Tab                | indenter / désindenter (plusieurs lignes si sélection) |
-| Ctrl+K                       | supprimer la ligne |
-| Alt+Z                        | retour à la ligne automatique oui/non |
-| Ctrl+S                       | enregistrer (aussi automatique en sortant) |
-| Ctrl+O                       | ouvrir le `[[lien]]` sous le curseur (le crée s'il n'existe pas) |
-| Ctrl+B                       | rétroliens |
-| Ctrl+F                       | recherche dans tout le coffre |
-| Échap                        | revenir à la note parente, puis à l'arborescence |
-
-## Recherche (Ctrl+F)
-
-La recherche ne tient compte ni des majuscules ni des accents. Les résultats arrivent dans cet ordre :
-
-1. **les dossiers** dont le nom correspond, marqués `(dossier)`. Entrée revient à l'arborescence, sur ce dossier ouvert ;
-2. **les notes** dont le nom correspond, marquées `(nom de la note)`. Seul le nom de la note compte, pas celui de son dossier ;
-3. **les lignes** des notes qui contiennent le texte cherché (`note:numéro de ligne`).
-
-## Souris
-
-- **Arborescence** : clic pour sélectionner, double-clic pour ouvrir, clic sur `[-]`/`[+]` pour plier, molette pour défiler.
-- **Éditeur** : clic pour placer le curseur et glisser pour sélectionner. Double-clic sélectionne un mot, triple-clic une ligne. Maj+clic étend la sélection, Ctrl+clic ouvre un `[[lien]]`. La molette fait défiler.
-- **Barre du bas** : chaque touche affichée est un bouton.
-- Les numéros de ligne ne sont jamais copiés : la sélection ne porte que sur le texte.
-
-## Import / export (arborescence)
-
-- **I** importe un fichier ou un dossier entier (sous-dossiers compris) dans le dossier sélectionné. Tab complète le chemin, et on peut aussi glisser le fichier dans la fenêtre. Les fichiers non texte sont ignorés et l'ancien encodage Windows (ANSI) est converti. **Les originaux restent en clair sur le disque** : supprime-les toi-même.
-- **e** exporte la note ou le dossier sélectionné en `.txt`, **E** exporte tout le coffre. Les fichiers exportés ne sont **pas chiffrés**.
-
-## Bon à savoir
-
-- **Windows Terminal** garde pour lui Ctrl+Maj+↑/↓ (défilement). Pour les utiliser dans Securetxt, retire ces deux raccourcis dans les paramètres de Windows Terminal, ou choisis d'autres touches dans Ctrl+P.
-- **Linux** : Maj+Entrée ne fonctionne que dans les terminaux qui le distinguent d'Entrée (kitty, foot, WezTerm, Ghostty…). Ailleurs, change la touche dans Ctrl+P.
-- **Presse-papiers Linux** : `xclip`, `xsel` ou `wl-clipboard` permettent de partager le presse-papiers avec les autres applications.
-
-## Arborescence : notes parentes et enfants
-
-Une note qui contient un lien `[[...]]` devient le **parent** de la note visée (son **enfant**).
-
+# Securetxt v0.3.9
+ 
+Carnet de notes chiffrées pour le terminal, en PHP pur.
+Aucun serveur, aucune dépendance externe, et une expérience clavier first (la souris est un bonus).
+ 
+---
+## Sommaire
+ 
+- [Fonctionnalités](#fonctionnalités)
+- [Prérequis](#prérequis)
+- [Installation](#installation)
+- [Premiers pas](#premiers-pas)
+- [Utilisation](#utilisation)
+  - [Arborescence](#arborescence)
+  - [Éditeur](#éditeur)
+  - [Recherche](#recherche)
+  - [Notes parentes et enfants](#notes-parentes-et-enfants)
+  - [Souris](#souris)
+  - [Import / export](#import--export)
+- [Personnalisation](#personnalisation)
+- [Sécurité et format du coffre](#sécurité-et-format-du-coffre)
+- [Dépannage](#dépannage)
+- [Mise à jour](#mise-à-jour)
+- [Journal des versions](#journal-des-versions)
+---
+ 
+## Fonctionnalités
+ 
+- **Chiffrement fort** : Argon2id + XSalsa20-Poly1305 (libsodium). Les noms des notes sont chiffrés eux aussi.
+- **Notes organisées en dossiers**, avec des liens `[[note]]` qui créent une arborescence de notes parentes et enfants.
+- **Recherche instantanée** dans les dossiers, les noms de notes et le contenu, sans tenir compte des majuscules ni des accents.
+- **Éditeur complet** : sélection, copier / coller, annuler / rétablir, indentation, retour à la ligne automatique, numéros de ligne.
+- **Entièrement personnalisable** : thèmes 256 couleurs, thèmes personnels avec logo ASCII, tous les raccourcis sont modifiables.
+- **Import / export** de fichiers texte, avec conversion de l'ancien encodage Windows (ANSI).
+- **Windows et Linux**, avec création d'un raccourci sur le Bureau.
+## Prérequis
+ 
+| | |
+|---|---|
+| **PHP** | 8.5 |
+| **Extensions** | `sodium`, `mbstring`, et `ffi` sous Windows |
+| **Terminal** | Windows Terminal recommandé sous Windows ; Ghostty, kitty, foot ou WezTerm sous Linux |
+ 
+Vérifier les extensions : `php -m`
+ 
+## Installation
+ 
+1. Télécharge la dernière archive `Securetxt-vX.Y.Z.zip` depuis la page **Releases** et décompresse-la.
+2. Configure le lancement selon ton système.
+### Windows
+ 
+1. Ouvre `securetxt.bat` dans un éditeur de texte et indique le chemin de ton `php.exe` sur la ligne `PHP85=`.
+2. Double-clique sur `securetxt.bat` pour lancer l'application.
+3. *(Facultatif)* Double-clique sur `creer-raccourci.bat` (ou Paramètres > Créer un raccourci) pour obtenir une icône sur le Bureau. Le raccourci utilise Windows Terminal s'il est installé.
+### Linux
+ 
+```sh
+chmod +x securetxt.sh creer-raccourci.sh
+./securetxt.sh
+# ou, avec un PHP précis :
+PHP85=/chemin/vers/php ./securetxt.sh
+```
+ 
+*(Facultatif)* Raccourci dans le menu des applications (GNOME, KDE…) :
+ 
+```sh
+./creer-raccourci.sh             # crée le raccourci
+./creer-raccourci.sh --supprimer # le retire
+```
+ 
+Securetxt apparaît alors dans la liste des applications (touche Super, puis « Securetxt »). Il s'ouvre dans Ghostty s'il est installé, sinon dans le premier terminal trouvé (Console, GNOME Terminal, kitty, foot…). Une icône est aussi posée sur le Bureau s'il existe (sous GNOME « Desktop Icons NG » nécessaire).
+Si tu déplaces le dossier de Securetxt, relance le script.
+ 
+## Premiers pas
+ 
+1. Au premier lancement, Securetxt crée un coffre dans le dossier `coffre/` et te demande de choisir un mot de passe.
+2. Une note de bienvenue explique les bases.
+3. **N** crée une note, **Entrée** l'ouvre, **Échap** revient à l'arborescence. L'enregistrement est automatique en sortant d'une note.
+> **Attention** :  Il n'existe aucun moyen de récupérer les notes si le mot de passe est perdu.
+ 
+## Utilisation
+ 
+### Arborescence
+ 
+| Touche | Action |
+|---|---|
+| Entrée | ouvrir la note / déplier le dossier |
+| N | nouvelle note |
+| D | nouveau dossier |
+| R | renommer |
+| Suppr | effacer |
+| I | importer des fichiers |
+| e / E | exporter la sélection / tout le coffre |
+| Ctrl+F | rechercher |
+| P | paramètres |
+| L | verrouiller le coffre |
+ 
+### Éditeur
+ 
+| Touche | Action |
+|---|---|
+| Ctrl+← / Ctrl+→ | mot précédent / suivant |
+| Ctrl+↑ / Ctrl+↓ | ligne réelle précédente / suivante (↑ ↓ suivent les lignes affichées quand le texte revient à la ligne) |
+| Maj+flèches, Maj+Début/Fin | sélectionner |
+| Ctrl+Maj+← / → | sélectionner mot par mot |
+| Ctrl+Maj+↑ / ↓ | sélectionner ligne entière par ligne entière |
+| Ctrl+A | tout sélectionner |
+| Ctrl+C / Ctrl+X / Ctrl+V | copier / couper / coller (sans sélection : la ligne entière) |
+| Ctrl+Z / Ctrl+Y | annuler / rétablir |
+| Ctrl+Retour arr. (ou +Maj) | effacer le mot à gauche |
+| Ctrl+Suppr (ou +Maj) | effacer le mot à droite |
+| Maj+Entrée | insérer une ligne vide au début de la ligne (le texte descend) |
+| Ctrl+Entrée | nouvelle ligne en dessous, sans couper la ligne |
+| Tab / Maj+Tab | indenter / désindenter (plusieurs lignes si sélection) |
+| Ctrl+K | supprimer la ligne |
+| Alt+Z | retour à la ligne automatique oui / non |
+| Ctrl+S | enregistrer (aussi automatique en sortant) |
+| Ctrl+O | ouvrir le `[[lien]]` sous le curseur (le crée s'il n'existe pas) |
+| Ctrl+B | rétroliens (notes qui pointent vers celle-ci) |
+| Ctrl+F | recherche dans tout le coffre |
+| Échap | revenir à la note parente, puis à l'arborescence |
+ 
+Tous les raccourcis se modifient dans **Ctrl+P > Raccourcis**.
+ 
+### Recherche
+ 
+Ctrl+F cherche dans tout le coffre, sans tenir compte des majuscules ni des accents. Les résultats sont classés ainsi :
+ 
+1. Dossiers dont le nom correspond, marqués `(dossier)`. Entrée revient à l'arborescence, sur ce dossier ouvert.
+2. Notes dont le nom correspond, marquées `(nom de la note)`. Seul le nom de la note compte, pas celui de son dossier.
+3. Lignes des notes qui contiennent le texte cherché (`note:numéro de ligne`).
+### Notes parentes et enfants
+ 
+Une note qui contient un lien `[[...]]` devient le parent de la note visée.
+ 
 ```
 [-] Idées/
    ▼  amélioration
@@ -91,23 +141,55 @@ Une note qui contient un lien `[[...]]` devient le **parent** de la note visée 
         |- mail
    ►  autre note
 ```
-
-- `►` devant une note : elle a des enfants, cachés. `▼` : ils sont affichés.
-  (`[+]` / `[-]` reste réservé aux dossiers.)
-- **Clavier** : **Espace** affiche / cache les enfants, **→** les affiche, **←** les cache ou remonte à la note parente.
-  La barre du bas rappelle la touche quand une note avec enfants est sélectionnée.
-- Souris : clic sur `►` / `▼`.
-- Couleurs (Ctrl+P > Couleurs) : le symbole `►` / `▼` et les noms des notes enfants dans l'arborescence se règlent séparément de la couleur des `[[liens]]` dans le texte des notes.
-- Tout est fermé au lancement de l'application. En revenant d'une note (Échap), les branches qui y mènent s'ouvrent.
-- Une note qui a un parent **dans le même dossier** n'est plus listée seule : elle apparaît seulement sous son parent.
-  Si son parent est dans un autre dossier, elle reste aussi listée dans son propre dossier.
-- Une note liée par plusieurs notes apparaît sous chacune d'elles. Boucle (A → B → A) : marquée `↺`.
+ 
+| Symbole / touche | Signification |
+|---|---|
+| `►` | la note a des enfants, cachés |
+| `▼` | ses enfants sont affichés |
+| `[+]` / `[-]` | réservés aux dossiers |
+| `↺` | boucle (A → B → A) |
+| Espace | afficher / cacher les enfants |
+| → / ← | afficher les enfants / les cacher ou remonter à la note parente |
+ 
+Règles d'affichage :
+ 
+- Tout est fermé au lancement. En revenant d'une note, les branches qui y mènent s'ouvrent.
+- Une note dont le parent est dans le même dossier n'apparaît que sous ce parent. Si le parent est dans un autre dossier, elle reste aussi listée dans son propre dossier.
+- Une note liée par plusieurs notes apparaît sous chacune d'elles.
 - Les images et les liens vers des notes pas encore créées ne sont pas affichés comme enfants.
-
-## Thèmes dans settings.json
-
-Les thèmes enregistrés sont rangés dans `"customThemes"` de `coffre/settings.json`. Chacun est indépendant :
-
+- Les couleurs du symbole `►` / `▼` et des notes enfants se règlent séparément de celle des `[[liens]]` (Ctrl+P > Couleurs).
+### Souris
+ 
+- Arborescence : clic pour sélectionner, double-clic pour ouvrir, clic sur `[-]` / `[+]` pour plier, clic sur `►` / `▼` pour les enfants, molette pour défiler.
+- Éditeur : clic pour placer le curseur, glisser pour sélectionner, double-clic pour un mot, triple-clic pour une ligne, Maj+clic pour étendre la sélection, Ctrl+clic pour ouvrir un `[[lien]]`.
+- Barre du bas : chaque touche affichée est un bouton.
+- Les numéros de ligne ne sont jamais copiés : la sélection ne porte que sur le texte.
+### Import / export
+ 
+- **I** importe un fichier ou un dossier entier (sous-dossiers compris) dans le dossier sélectionné. Tab complète le chemin ; on peut aussi glisser le fichier dans la fenêtre. Les fichiers non texte sont ignorés et l'encodage Windows (ANSI) est converti.
+- **e** exporte la note ou le dossier sélectionné en `.txt`, **E** exporte tout le coffre.
+>  **Attention** : Les fichiers importés restent en clair sur le disque (supprime-les toi-même), et les fichiers exportés ne sont pas chiffrés.
+ 
+## Personnalisation
+ 
+Les paramètres s'ouvrent avec Ctrl+P (ou P dans l'arborescence) et s'enregistrent immédiatement dans `coffre/settings.json`.
+ 
+| Réglage | Description |
+|---|---|
+| Thème | Smile Basic, Nuit, Ambre, Phosphore vert, Papier, plus tes thèmes enregistrés (marqués « perso ») |
+| Couleurs | chaque élément (texte, liens, barres, sélection…) se règle séparément : ←/→ ±1, Maj+←/→ ±10, Entrée pour saisir une valeur de 0 à 255, R pour annuler |
+| Enregistrer un thème | dans l'écran des couleurs, S enregistre les couleurs actuelles sous un nom ; même nom = mise à jour ; **Suppr** sur la ligne « Thème » le supprime |
+| Logo du thème à la connexion | affiche le dessin ASCII du thème sur l'écran du mot de passe |
+| Éditeur | retour à la ligne automatique, numéros de ligne, indentation automatique, largeur des tabulations |
+| Souris | activée / désactivée |
+| Raccourcis | Entrée remplace, + ajoute une touche, Suppr efface, Retour arrière rétablit la touche par défaut |
+ 
+Changer de thème sans enregistrer perd les modifications en cours (une confirmation est demandée).
+ 
+### Thèmes personnalisés (settings.json)
+ 
+Les thèmes enregistrés sont rangés dans `"customThemes"` de `coffre/settings.json` :
+ 
 ```json
 "Mon thème": {
   "base": "nuit",
@@ -116,25 +198,49 @@ Les thèmes enregistrés sont rangés dans `"customThemes"` de `coffre/settings.
     " /  \\ ",
     "/____\\"
   ],
-  "colors": { "text": [153, 234, false, false], ... }
+  "colors": { "text": [153, 234, false, false] }
 }
 ```
+ 
+| Clé | Rôle |
+|---|---|
+| `base` | thème intégré qui fournit les couleurs manquantes : `smile`, `nuit`, `ambre`, `phosphore`, `papier` |
+| `logo` | *(facultatif)* une chaîne par ligne du dessin, 16 lignes et 60 colonnes au plus, affiché avec la couleur « Logo ». En JSON, `\` s'écrit `\\` et `"` s'écrit `\"` |
+| `colors` | `[texte, fond, gras, souligné]` pour chaque élément de l'écran Couleurs |
 
-- `base` : thème intégré qui fournit les couleurs manquantes (`smile`, `nuit`, `ambre`, `phosphore`, `papier`).
-- `logo` (facultatif) : une ligne de texte par ligne du dessin, 16 lignes et 60 colonnes au plus. Il prend la couleur « Logo ». En JSON, `\` s'écrit `\\` et `"` s'écrit `\"`. Si la fenêtre est trop petite, le logo Securetxt s'affiche à la place.
-- `colors` : [texte, fond, gras, souligné] pour chaque élément de l'écran Couleurs.
-
-Ferme Securetxt avant de modifier ce fichier à la main : une erreur de JSON fait repartir sur les réglages par défaut.
-
-## Format du coffre (inchangé depuis la v0.1)
-
+Si la fenêtre est trop petite pour le logo, celui de Securetxt s'affiche à la place.
+ 
+## Sécurité et format du coffre
+ 
 ```
 coffre/
-  vault.meta         sel + paramètres Argon2id + bloc de vérification (rien de secret)
-  index.ltx          arborescence chiffrée (les noms des notes sont cachés)
-  notes/n<id>.ltx    une note chiffrée par fichier, nom aléatoire
-  settings.json      réglages (en clair, aucune donnée personnelle)
+├── vault.meta        sel + paramètres Argon2id + bloc de vérification (rien de secret)
+├── index.ltx         arborescence chiffrée (les noms des notes sont cachés)
+├── notes/n<id>.ltx   une note chiffrée par fichier, au nom aléatoire
+└── settings.json     réglages, en clair (aucune donnée personnelle)
 ```
-
-Clé dérivée du mot de passe avec Argon2id, chiffrement XSalsa20-Poly1305 (libsodium).
-**Il n'y a aucun moyen de récupérer les notes si le mot de passe est perdu.**
+ 
+- Dérivation de clé : Argon2id à partir du mot de passe.
+- Chiffrement : XSalsa20-Poly1305 (libsodium), authentifié : toute modification d'un fichier est détectée.
+- Aucune donnée en clair : le contenu et les noms des notes sont chiffrés ; seul `settings.json` ne l'est pas.
+- Le format est inchangé depuis la v0.1 : chaque nouvelle version ouvre les coffres des précédentes.
+ 
+## Dépannage
+ 
+| Problème | Solution |
+|---|---|
+| Ctrl+Maj+↑ / ↓ ne fonctionne pas sous **Windows Terminal** | Windows Terminal garde ces touches pour le défilement : retire ces deux raccourcis dans ses paramètres, ou choisis d'autres touches dans Ctrl+P |
+| Maj+Entrée ne fonctionne pas sous **Linux** | seuls certains terminaux la distinguent d'Entrée (kitty, foot, WezTerm, Ghostty…) : change la touche dans Ctrl+P |
+| Le presse-papiers n'est pas partagé sous **Linux** | installe `xclip`, `xsel` ou `wl-clipboard` |
+| « PHP introuvable » | vérifie le chemin `PHP85=` dans `securetxt.bat`, ou lance `PHP85=/chemin/vers/php ./securetxt.sh` |
+| Extension manquante | active `sodium`, `mbstring` (et `ffi` sous Windows) dans `php.ini` |
+ 
+## Mise à jour
+ 
+1. Télécharge et décompresse la nouvelle version.
+2. Copie le dossier `coffre/` de l'ancienne version dans la nouvelle.
+Le format du coffre n'a pas changé : tes notes, réglages et thèmes sont conservés.
+ 
+## Journal des versions
+ 
+Les nouveautés de chaque version sont détaillées dans [CHANGELOG.md](CHANGELOG.md).
