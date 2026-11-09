@@ -113,12 +113,15 @@ final class EditorView implements View
         $len = mb_strlen($line);
         $tw = $this->tw;
         $segs = [];
-        if ($len <= $tw) {
+        // « < » et pas « <= » : le dernier morceau garde toujours une colonne libre pour le
+        // curseur de fin de ligne. Sinon, une ligne qui remplit exactement la largeur met le
+        // curseur sur sa dernière lettre (il a l'air d'avoir un caractère de retard).
+        if ($len < $tw) {
             $segs[] = [0, $len];
         } else {
             $chars = mb_str_split($line);
             $s = 0;
-            while ($len - $s > $tw) {
+            while ($len - $s >= $tw) {
                 $e = $s + $tw;
                 $b = $e;
                 while ($b > $s && $chars[$b - 1] !== ' ') {
@@ -600,7 +603,7 @@ final class EditorView implements View
                     return;
                 }
                 $this->ay = null;
-                // no break
+            // no break
             case 'ed.selLeft':
                 $this->left();
                 return;
@@ -612,7 +615,7 @@ final class EditorView implements View
                     return;
                 }
                 $this->ay = null;
-                // no break
+            // no break
             case 'ed.selRight':
                 $this->right();
                 return;
