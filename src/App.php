@@ -253,6 +253,21 @@ final class App
         $this->prompt = new Prompt($this, $label, $initial, $done, false, $completer);
     }
 
+    /** Saisie masquée (mot de passe) : rien n'est affiché en clair, Tab ne complète rien. */
+    public function askSecret(string $label, Closure $done): void
+    {
+        $this->prompt = new Prompt($this, $label, '', $done, false, null, true);
+    }
+
+    /**
+     * Question à choix : une touche par réponse, Échap annule (null).
+     * @param array<string,string> $choices touche => valeur renvoyée
+     */
+    public function choose(string $question, array $choices, Closure $done): void
+    {
+        $this->prompt = new Prompt($this, $question . ' ', '', $done, false, null, false, $choices);
+    }
+
     public function confirm(string $question, Closure $yes): void
     {
         $this->prompt = new Prompt($this, $question . ' (o/n) ', '', function ($ok) use ($yes): void {
@@ -459,7 +474,9 @@ final class Prompt
         string $initial,
         private Closure $done,
         private bool $confirm,
-        private ?Closure $completer = null
+        private ?Closure $completer = null,
+        private bool $secret = false,
+        private ?array $choices = null
     ) {
         $this->value = $initial;
         $this->pos = mb_strlen($initial);
@@ -483,8 +500,19 @@ final class Prompt
             $this->finish(in_array($k, ['o', 'O', 'y', 'Y'], true));
             return;
         }
+        if ($this->choices !== null) {
+            if ($k === 'ESC') {
+                $this->finish(null);
+            } elseif (isset($this->choices[mb_strtolower($k)])) {
+                $this->finish($this->choices[mb_strtolower($k)]);
+            }
+            return;
+        }
         $wasTab = $this->lastTab;
         $this->lastTab = false;
+        if ($this->secret && in_array($k, ['LEFT', 'RIGHT', 'HOME', 'END', 'DEL', 'TAB'], true)) {
+            return;   // saisie masquée : on écrit et on efface seulement à la fin
+        }
         if (strncmp($k, 'PASTE:', 6) === 0) {
             $this->insert(strtok(substr($k, 6), "\n") ?: '');
             return;
@@ -561,8 +589,13 @@ final class Prompt
         $r = new Row($w, T::$c['input']);
         $label = ' ' . $this->label;
         $r->add($label, T::$c['inputLabel']);
-        if ($this->confirm) {
+        if ($this->confirm || $this->choices !== null) {
             return [$r->done(), min($w - 1, mb_strlen($label))];
+        }
+        if ($this->secret) {
+            $stars = str_repeat('*', min(mb_strlen($this->value), max(0, $w - mb_strlen($label) - 1)));
+            $r->add($stars);
+            return [$r->done(), min($w - 1, mb_strlen($label) + mb_strlen($stars))];
         }
         $hint = $this->cands ? '  [Tab : ' . count($this->cands) . ' choix]' : '';
         $room = max(1, $w - mb_strlen($label) - 1 - mb_strlen($hint));

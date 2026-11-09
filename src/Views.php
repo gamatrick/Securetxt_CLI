@@ -737,11 +737,16 @@ final class TreeView implements View
     {
         $folder = $this->currentFolder();
         $dest = $folder === '' ? 'la racine' : $folder . '/';
-        $this->app->ask('Importer dans ' . $dest . ' (fichier ou dossier) : ', Transfer::homeDir(), function ($src) use ($folder): void {
+        $this->app->ask('Importer dans ' . $dest . ' (fichier, dossier ou export .stx) : ', Transfer::homeDir(), function ($src) use ($folder): void {
             if ($src === null || trim($src) === '') {
                 return;
             }
-            [$n, $skipped, $first] = Transfer::import($this->app->vault, Transfer::cleanPath($src), $folder);
+            $src = Transfer::cleanPath($src);
+            if (Package::isPackage($src)) {
+                $this->importPackage($src, $folder);
+                return;
+            }
+            [$n, $skipped, $first] = Transfer::import($this->app->vault, $src, $folder);
             if ($first !== null) {
                 $this->focus('note', $first);
             }
@@ -753,6 +758,31 @@ final class TreeView implements View
         }, fn (string $v): array => Transfer::complete($v));
     }
 
+    /** Import d'un export chiffré : mot de passe du fichier, puis rechiffrement avec la clé du coffre. */
+    private function importPackage(string $file, string $folder): void
+    {
+        $this->app->askSecret('Mot de passe de « ' . basename($file) . ' » : ', function ($pw) use ($file, $folder): void {
+            if ($pw === null || $pw === '') {
+                return;
+            }
+            try {
+                $data = Package::open($file, $pw);
+            } catch (\RuntimeException $e) {
+                $this->app->error($e->getMessage());
+                return;
+            }
+            if (!$data['notes'] && !$data['folders']) {
+                $this->app->info('Cet export ne contient aucune note.');
+                return;
+            }
+            [$n, $first] = Package::insert($this->app->vault, $data, $folder);
+            if ($first !== null) {
+                $this->focus('note', $first);
+            }
+            $this->app->info($n . ' note(s) importée(s) depuis l\'export chiffré, maintenant protégées par le mot de passe du coffre.');
+        });
+    }
+
     private function export(bool $all): void
     {
         $v = $this->app->vault;
@@ -760,23 +790,45 @@ final class TreeView implements View
         if ($all) {
             $ids = array_keys($v->notes());
             $base = '';
+            $kind = 'vault';
+            $sel = '';
             $label = 'tout le coffre';
         } elseif ($r === null) {
             return;
         } elseif ($r['t'] === 'note') {
             $ids = [$r['id']];
             $base = Vault::parent($r['path']);
+            $kind = 'note';
+            $sel = $r['path'];
             $label = '« ' . $r['path'] . ' »';
         } else {
             $ids = $v->notesInFolder($r['path']);
             $base = Vault::parent($r['path']);
+            $kind = 'folder';
+            $sel = $r['path'];
             $label = '« ' . $r['path'] . '/ »';
         }
+        if (!$ids && $kind !== 'folder') {
+            $this->app->info('Rien à exporter.');
+            return;
+        }
+        $this->app->choose('Exporter ' . $label . ' :  C = chiffré (.stx)   T = texte en clair   Échap = annuler',
+            ['c' => 'stx', 't' => 'txt'], function ($fmt) use ($ids, $base, $kind, $sel, $label, $all): void {
+                if ($fmt === 'stx') {
+                    $this->exportPackage($ids, $base, $kind, $sel, $label);
+                } elseif ($fmt === 'txt') {
+                    $this->exportText($ids, $base, $label, $all);
+                }
+            });
+    }
+
+    private function exportText(array $ids, string $base, string $label, bool $all): void
+    {
         if (!$ids) {
             $this->app->info('Rien à exporter.');
             return;
         }
-        $this->app->ask('Exporter ' . $label . ' vers le dossier : ', Transfer::homeDir(), function ($dest) use ($ids, $base, $all): void {
+        $this->app->ask('Exporter ' . $label . ' en clair vers le dossier : ', Transfer::homeDir(), function ($dest) use ($ids, $base, $all): void {
             if ($dest === null || trim($dest) === '') {
                 return;
             }
@@ -787,6 +839,43 @@ final class TreeView implements View
             $this->app->confirm('Les fichiers exportés seront EN CLAIR (non chiffrés). Continuer ?', function () use ($ids, $base, $dest): void {
                 $n = Transfer::export($this->app->vault, $ids, $base, $dest);
                 $this->app->info($n . ' note(s) exportée(s) dans ' . $dest);
+            });
+        }, fn (string $v): array => Transfer::complete($v));
+    }
+
+    /** Export chiffré : dossier de destination, mot de passe (2 fois), un seul fichier .stx. */
+    private function exportPackage(array $ids, string $base, string $kind, string $sel, string $label): void
+    {
+        $this->app->ask('Exporter ' . $label . ' chiffré vers le dossier : ', Transfer::homeDir(), function ($dest) use ($ids, $base, $kind, $sel): void {
+            if ($dest === null || trim($dest) === '') {
+                return;
+            }
+            $dest = rtrim(Transfer::cleanPath($dest), '/\\');
+            $min = Package::MIN_PASSWORD;
+            $this->app->askSecret('Mot de passe de l\'export (' . $min . ' caractères min.) : ', function ($pw) use ($ids, $base, $kind, $sel, $dest, $min): void {
+                if ($pw === null || $pw === '') {
+                    return;
+                }
+                if (mb_strlen($pw) < $min) {
+                    $this->app->error('Mot de passe trop court : ' . $min . ' caractères minimum.');
+                    return;
+                }
+                $this->app->askSecret('Confirme le mot de passe : ', function ($pw2) use ($pw, $ids, $base, $kind, $sel, $dest): void {
+                    if ($pw2 === null) {
+                        return;
+                    }
+                    if ($pw2 !== $pw) {
+                        $this->app->error('Les deux mots de passe sont différents. Export annulé.');
+                        return;
+                    }
+                    try {
+                        [$n, $file] = Package::export($this->app->vault, $ids, $base, $kind, $sel, $dest, $pw);
+                    } catch (\RuntimeException $e) {
+                        $this->app->error($e->getMessage());
+                        return;
+                    }
+                    $this->app->info($n . ' note(s) chiffrée(s) dans ' . $file . ' — garde bien ce mot de passe : sans lui, le fichier est illisible.');
+                });
             });
         }, fn (string $v): array => Transfer::complete($v));
     }
@@ -1116,6 +1205,12 @@ La barre du bas rappelle la touche quand la note sélectionnée a des enfants.
   N  nouvelle note    D  nouveau dossier    R  renommer
   I  importer         e  exporter           E  tout exporter
   L  verrouiller      Espace / → / ←  enfants d'une note (voir plus haut)
+
+## Export chiffré
+  e ou E, puis C : la sélection (ou tout le coffre) part dans UN fichier .stx,
+  protégé par un mot de passe choisi pour l'occasion.
+  I sur un fichier .stx : Securetxt demande son mot de passe, puis range les
+  notes ici, protégées par le mot de passe du coffre.
 
 Tous les raccourcis se changent dans Ctrl+P.
 Les couleurs aussi, dont celle du symbole ► / ▼ (Ctrl+P > Couleurs).
