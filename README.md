@@ -1,4 +1,4 @@
-# Securetxt v0.3.9
+# Securetxt v0.4.0
  
 Carnet de notes chiffrées pour le terminal, en PHP pur.
 Aucun serveur, aucune dépendance externe, et une expérience clavier first (la souris est un bonus).
@@ -59,7 +59,7 @@ Securetxt est développé par **gamatrick**, avec l'aide de **Claude** , en part
 - **Recherche instantanée** dans les dossiers, les noms de notes et le contenu, sans tenir compte des majuscules ni des accents.
 - **Éditeur complet** : sélection, copier / coller, annuler / rétablir, indentation, retour à la ligne automatique, numéros de ligne.
 - **Entièrement personnalisable** : thèmes 256 couleurs, thèmes personnels avec logo ASCII, tous les raccourcis sont modifiables.
-- **Import / export** de fichiers texte, avec conversion de l'ancien encodage Windows (ANSI).
+- - **Import / export** de fichiers texte, et **export chiffré** (`.stx`) pour transférer des notes d'un coffre à un autre en toute sécurité.
 - **Windows et Linux**, avec création d'un raccourci sur le Bureau.
 ## Prérequis
  
@@ -195,8 +195,12 @@ Règles d'affichage :
 ### Import / export
  
 - **I** importe un fichier ou un dossier entier (sous-dossiers compris) dans le dossier sélectionné. Tab complète le chemin ; on peut aussi glisser le fichier dans la fenêtre. Les fichiers non texte sont ignorés et l'encodage Windows (ANSI) est converti.
-- **e** exporte la note ou le dossier sélectionné en `.txt`, **E** exporte tout le coffre.
->  **Attention** : Les fichiers importés restent en clair sur le disque (supprime-les toi-même), et les fichiers exportés ne sont pas chiffrés.
+- **e** exporte la note ou le dossier sélectionné, **E** tout le coffre. Securetxt demande ensuite le format :
+  - **C = chiffré** : un seul fichier `.stx` (ex. `Idées-2026-11-09.stx`), protégé par un mot de passe choisi pour l'export (8 caractères minimum, saisi deux fois). Le fichier ne révèle ni le nom, ni le nombre, ni la taille des notes.
+  - **T = texte en clair** : des fichiers `.txt` non chiffrés.
+- **I** sur un fichier `.stx` demande son mot de passe, vérifie tout en mémoire, puis range les notes dans le dossier sélectionné, chiffrées avec le mot de passe du coffre. Rien n'est importé si le mot de passe est faux ou le fichier abîmé. Un dossier qui existe déjà est importé sous « Nom (2) ».
+
+> **Attention** : Les fichiers importés restent **en clair** sur le disque (supprime-les toi-même), l'export **T** n'est pas chiffré, et le mot de passe d'un `.stx` est **irrécupérable**.
  
 ## Personnalisation
  

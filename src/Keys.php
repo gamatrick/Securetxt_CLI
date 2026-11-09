@@ -37,7 +37,7 @@ final class Keys
         'tree.newFolder' => ['tree', 'Nouveau dossier', ['D', 'd']],
         'tree.rename'    => ['tree', 'Renommer', ['R', 'r', 'F2']],
         'tree.delete'    => ['tree', 'Effacer', ['DEL']],
-        'tree.import'    => ['tree', 'Importer des fichiers', ['I', 'i']],
+        'tree.import'    => ['tree', 'Importer des fichiers (ou un export .stx)', ['I', 'i']],
         'tree.export'    => ['tree', 'Exporter la sélection', ['e']],
         'tree.exportAll' => ['tree', 'Exporter tout le coffre', ['E']],
         'tree.search'    => ['tree', 'Recherche dans tout le coffre', ['/']],
@@ -276,7 +276,7 @@ final class Keys
                 }
                 if ($nx === 'O' && $i + 2 < $n) {
                     $k = ['P' => 'F1', 'Q' => 'F2', 'R' => 'F3', 'S' => 'F4', 'A' => 'UP', 'B' => 'DOWN',
-                          'C' => 'RIGHT', 'D' => 'LEFT', 'H' => 'HOME', 'F' => 'END', 'M' => 'ENTER'][$s[$i + 2]] ?? null;
+                        'C' => 'RIGHT', 'D' => 'LEFT', 'H' => 'HOME', 'F' => 'END', 'M' => 'ENTER'][$s[$i + 2]] ?? null;
                     if ($k !== null) {
                         $out[] = $k;
                     }

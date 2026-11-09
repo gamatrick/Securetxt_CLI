@@ -28,8 +28,8 @@ if ($missing) {
 
 mb_internal_encoding('UTF-8');
 define('SECURETXT_VERSION', trim((string) @file_get_contents(__DIR__ . '/VERSION')) ?: 'dev');
-foreach (['Text', 'Theme', 'Keys', 'Settings', 'Terminal', 'Clipboard', 'Screen', 'Vault', 'Transfer',
-          'Shortcut', 'App', 'Views', 'Editor', 'SettingsView'] as $f) {
+foreach (['Text', 'Theme', 'Keys', 'Settings', 'Terminal', 'Clipboard', 'Screen', 'Vault', 'Transfer', 'Package',
+             'Shortcut', 'App', 'Views', 'Editor', 'SettingsView'] as $f) {
     require __DIR__ . '/src/' . $f . '.php';
 }
 
