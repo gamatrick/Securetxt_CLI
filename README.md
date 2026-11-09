@@ -1,4 +1,4 @@
-# Securetxt v0.3.9
+# Securetxt v0.4.0
  
 Carnet de notes chiffrées pour le terminal, en PHP pur.
 Aucun serveur, aucune dépendance externe, et une expérience clavier first (la souris est un bonus).
