@@ -62,7 +62,8 @@ Securetxt est développé par **gamatrick**, avec l'aide de **Claude** , en part
 - - **Import / export** de fichiers texte, et **export chiffré** (`.stx`) pour transférer des notes d'un coffre à un autre en toute sécurité.
 - **Windows et Linux**, avec création d'un raccourci sur le Bureau.
 ## Prérequis
- 
+|||
+|--|--|
 | **PHP** | 8.5 |
 | **Extensions** | `sodium`, `mbstring`, et `ffi` sous Windows |
 | **Terminal** | Windows Terminal recommandé sous Windows ; Ghostty, kitty, foot ou WezTerm sous Linux |
