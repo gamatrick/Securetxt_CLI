@@ -63,7 +63,6 @@ Securetxt est développé par **gamatrick**, avec l'aide de **Claude** , en part
 - **Windows et Linux**, avec création d'un raccourci sur le Bureau.
 ## Prérequis
  
-| | |
 |---|---|
 | **PHP** | 8.5 |
 | **Extensions** | `sodium`, `mbstring`, et `ffi` sous Windows |
