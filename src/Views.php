@@ -241,11 +241,34 @@ final class TreeView implements View
     /** Ouvre les branches qui mènent à une note rangée sous son parent. */
     private function reveal(string $path): void
     {
-        $v = $this->app->vault;
-        $id = $v->findByPath($path);
+        $id = $this->app->vault->findByPath($path);
         if ($id === null) {
             return;
         }
+        $chain = $this->chain($id);
+        for ($k = 1; $k < count($chain); $k++) {
+            $this->expanded[implode('>', array_slice($chain, 0, $k))] = true;
+        }
+    }
+
+    /**
+     * Notes parentes sous lesquelles la note est rangée dans l'arborescence (même dossier),
+     * de la plus haute jusqu'à la note elle-même. Ex. [amélioration, exempledeenfant1, enfantdeenfant1].
+     * @return list<string> ids
+     */
+    public function parentChain(string $id): array
+    {
+        if ($this->stamp !== $this->currentStamp()) {
+            $this->rebuild();
+            $this->stamp = $this->currentStamp();
+        }
+        return $this->chain($id);
+    }
+
+    /** @return list<string> */
+    private function chain(string $id): array
+    {
+        $v = $this->app->vault;
         $chain = [$id];
         $seen = [$id => true];
         for ($cur = $id; ; ) {
@@ -264,9 +287,7 @@ final class TreeView implements View
             $seen[$next] = true;
             $cur = $next;
         }
-        for ($k = 1; $k < count($chain); $k++) {
-            $this->expanded[implode('>', array_slice($chain, 0, $k))] = true;
-        }
+        return $chain;
     }
 
     /** @param list<string> $ids @return list<string> */
@@ -915,6 +936,7 @@ final class ListView implements View
     private function search(): void
     {
         $this->results = [];
+        $this->shown = [];
         $this->sel = $this->top = 0;
         $q = Text::fold(trim($this->query));
         if ($q === '') {
@@ -1035,6 +1057,27 @@ final class ListView implements View
         return [$out, $cursor];
     }
 
+    /** @var array<string,string> chemin affiché par note, recalculé à chaque recherche */
+    private array $shown = [];
+
+    /**
+     * Chemin tel qu'on le voit dans l'arborescence : dossiers, puis notes parentes.
+     * Ex. « Projets/Idées/amélioration › exempledeenfant1 › enfantdeenfant1 ».
+     */
+    private function shownPath(string $id, string $path): string
+    {
+        if (!isset($this->shown[$id])) {
+            $v = $this->app->vault;
+            $names = [];
+            foreach ($this->app->tree?->parentChain($id) ?? [$id] as $n) {
+                $names[] = Vault::base((string) $v->path($n));
+            }
+            $folder = Vault::parent($path);
+            $this->shown[$id] = ($folder === '' ? '' : $folder . '/') . implode(' › ', $names);
+        }
+        return $this->shown[$id];
+    }
+
     private function resultRow(int $w, array $r, bool $selected): string
     {
         $c = T::$c;
@@ -1044,7 +1087,7 @@ final class ListView implements View
             return $row->add(' ')->add($path . '/', $selected ? null : $c['folder'])
                 ->add('  (dossier)', $selected ? null : $c['dim'])->done();
         }
-        $row->add(' ')->add($path, $selected ? null : $c['folder']);
+        $row->add(' ')->add($this->shownPath($r[0], $path), $selected ? null : $c['folder']);
         if ($ln < 0) {
             return $row->add('  (nom de la note)', $selected ? null : $c['dim'])->done();
         }
