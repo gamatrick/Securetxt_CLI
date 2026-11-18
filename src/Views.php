@@ -241,11 +241,50 @@ final class TreeView implements View
     /** Ouvre les branches qui mènent à une note rangée sous son parent. */
     private function reveal(string $path): void
     {
-        $v = $this->app->vault;
-        $id = $v->findByPath($path);
+        $id = $this->app->vault->findByPath($path);
         if ($id === null) {
             return;
         }
+        $chain = $this->chain($id);
+        for ($k = 1; $k < count($chain); $k++) {
+            $this->expanded[implode('>', array_slice($chain, 0, $k))] = true;
+        }
+    }
+
+    /**
+     * Notes parentes sous lesquelles la note est rangée dans l'arborescence (même dossier),
+     * de la plus haute jusqu'à la note elle-même. Ex. [amélioration, exempledeenfant1, enfantdeenfant1].
+     * @return list<string> ids
+     */
+    public function parentChain(string $id): array
+    {
+        if ($this->stamp !== $this->currentStamp()) {
+            $this->rebuild();
+            $this->stamp = $this->currentStamp();
+        }
+        return $this->chain($id);
+    }
+
+    /**
+     * Chemin tel qu'on le voit dans l'arborescence : dossiers, puis notes parentes, puis la note.
+     * Ex. « test2/test1/enfant1/testenfant3 » (test1 et enfant1 sont des notes parentes).
+     */
+    public function treePath(string $id): string
+    {
+        $v = $this->app->vault;
+        $path = (string) $v->path($id);
+        $names = [];
+        foreach ($this->parentChain($id) as $n) {
+            $names[] = Vault::base((string) $v->path($n));
+        }
+        $folder = Vault::parent($path);
+        return ($folder === '' ? '' : $folder . '/') . implode('/', $names);
+    }
+
+    /** @return list<string> */
+    private function chain(string $id): array
+    {
+        $v = $this->app->vault;
         $chain = [$id];
         $seen = [$id => true];
         for ($cur = $id; ; ) {
@@ -264,9 +303,7 @@ final class TreeView implements View
             $seen[$next] = true;
             $cur = $next;
         }
-        for ($k = 1; $k < count($chain); $k++) {
-            $this->expanded[implode('>', array_slice($chain, 0, $k))] = true;
-        }
+        return $chain;
     }
 
     /** @param list<string> $ids @return list<string> */
@@ -691,14 +728,32 @@ final class TreeView implements View
         if ($r === null) {
             return;
         }
-        $this->app->ask('Renommer en : ', $r['path'], function ($name) use ($r): void {
+        // une note rangée sous ses parents est proposée avec son chemin d'arborescence
+        // (« test2/test1/enfant1/testenfant3 »), mais elle reste dans son vrai dossier (« test2/ »)
+        $shown = $r['t'] === 'note' ? $this->treePath($r['id']) : $r['path'];
+        $this->app->ask('Renommer en : ', $shown, function ($name) use ($r, $shown): void {
             if ($name === null) {
                 return;
             }
             $path = Vault::normalize($name);
+            $treePrefix = Vault::parent($shown);
+            $realFolder = Vault::parent($r['path']);
+            if ($r['t'] === 'note' && $treePrefix !== $realFolder
+                && strncmp($path, $treePrefix . '/', strlen($treePrefix) + 1) === 0) {
+                // seule la fin a changé : on renomme la note dans son dossier
+                $rest = substr($path, strlen($treePrefix) + 1);
+                $path = $realFolder === '' ? $rest : $realFolder . '/' . $rest;
+            }
             if (($err = Vault::validate($path)) !== null) {
                 $this->app->error($err);
                 return;
+            }
+            // une note parente n'est pas un dossier : on refuse de « ranger » dedans
+            for ($f = Vault::parent($path); $f !== ''; $f = Vault::parent($f)) {
+                if ($this->app->vault->findByPath($f) !== null) {
+                    $this->app->error('« ' . $f . ' » est une note, pas un dossier. Pour changer de note parente, modifie ses liens [[...]].');
+                    return;
+                }
             }
             if ($path === $r['path']) {
                 return;
@@ -915,6 +970,7 @@ final class ListView implements View
     private function search(): void
     {
         $this->results = [];
+        $this->shown = [];
         $this->sel = $this->top = 0;
         $q = Text::fold(trim($this->query));
         if ($q === '') {
@@ -1035,6 +1091,15 @@ final class ListView implements View
         return [$out, $cursor];
     }
 
+    /** @var array<string,string> chemin affiché par note, recalculé à chaque recherche */
+    private array $shown = [];
+
+    /** Chemin tel qu'on le voit dans l'arborescence (dossiers, puis notes parentes). */
+    private function shownPath(string $id, string $path): string
+    {
+        return $this->shown[$id] ??= ($this->app->tree?->treePath($id) ?? $path);
+    }
+
     private function resultRow(int $w, array $r, bool $selected): string
     {
         $c = T::$c;
@@ -1044,7 +1109,7 @@ final class ListView implements View
             return $row->add(' ')->add($path . '/', $selected ? null : $c['folder'])
                 ->add('  (dossier)', $selected ? null : $c['dim'])->done();
         }
-        $row->add(' ')->add($path, $selected ? null : $c['folder']);
+        $row->add(' ')->add($this->shownPath($r[0], $path), $selected ? null : $c['folder']);
         if ($ln < 0) {
             return $row->add('  (nom de la note)', $selected ? null : $c['dim'])->done();
         }
