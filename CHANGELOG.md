@@ -2,6 +2,13 @@
 
 Les nouveautés de chaque version.
 
+## [0.4.1] — 2026-11-18
+
+- Linux : l'affichage ne reste plus figé en bas de l'écran après un passage en plein écran (Ghostty…). La taille de la fenêtre est revérifiée régulièrement et l'écran est entièrement redessiné une fois la taille stable.
+- Recherche : le chemin d'une note enfant montre ses notes parentes, comme dans l'arborescence (« test2/test1/enfant1/testenfant3 »). Les rétroliens (Ctrl+B) aussi.
+- Renommer : une note enfant est proposée avec ce même chemin complet. Seul son nom change, elle reste dans son vrai dossier ; ranger une note « dans » une autre note est refusé.
+- Le format du coffre ne change pas : compatible avec la v0.4.0.
+
 ## [0.4.0] — 2026-11-04
 
 - Export chiffré : e / E, puis C, crée un seul fichier `.stx` protégé par un mot de passe choisi pour l'export (Argon2id + XChaCha20-Poly1305).
